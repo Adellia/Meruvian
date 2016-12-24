@@ -32,6 +32,21 @@ public class NewsAdapter extends BaseAdapter {
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
+    public void addNews(News news) {
+        newses.add(news);
+        notifyDataSetChanged();
+    }
+
+    public void addNews(List<News> categories) {
+        this.newses.addAll(categories);
+        notifyDataSetChanged();
+    }
+
+    public void clear() {
+        newses.clear();
+        notifyDataSetChanged();
+    }
+
     @Override
     public int getCount() {
         return newses.size();

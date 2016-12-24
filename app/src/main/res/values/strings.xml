@@ -15,4 +15,9 @@
     <string name="confirm_delete">Confirm Delete</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+
+    <string name="failed_post_news">Failed Post News</string>
+    <string name="failed_delete_news">Failed Delete News</string>
+    <string name="empty_news">Empty News</string>
+    <string name="failed_recieve_news">Failed Recieve News</string>
 </resources>

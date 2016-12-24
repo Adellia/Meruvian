@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme">
 
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".NewsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -18,9 +18,9 @@
             </intent-filter>
         </activity>
 
-        <provi
-            android:name="com.lolaadellia.meruvian.content.database.NewsContentProvider"
-            android:authorities="com.lolaadellia.meruvian.content.database.newsContentProvider"
+        <provider
+            android:name=".content.database.NewsContentProvider"
+            android:authorities="com.lolaadellia.meruvian.content.database.newscontentprovider"
             android:syncable="true" />
 
     </application>

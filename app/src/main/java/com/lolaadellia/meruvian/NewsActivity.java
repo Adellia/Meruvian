@@ -11,15 +11,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.lolaadellia.meruvian.adapter.NewsAdapter;
+import com.lolaadellia.meruvian.content.database.adapter.NewsDatabaseAdapter;
 import com.lolaadellia.meruvian.entity.News;
 
+import java.util.Date;
+
 public class NewsActivity extends AppCompatActivity {
+    EditText title, content;
     private ListView listNews;
     private NewsAdapter newsAdapter;
+    private NewsDatabaseAdapter newsDatabaseAdapter;
+    private News news;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +33,12 @@ public class NewsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_news);
 
         listNews = (ListView) findViewById(R.id.list_news);
+        newsDatabaseAdapter = new NewsDatabaseAdapter(this);
         newsAdapter = new NewsAdapter(this, News.data());
         listNews.setAdapter(newsAdapter);
+        title = (EditText) findViewById(R.id.edit_title);
+        content = (EditText) findViewById(R.id.edit_content);
+
 
         listNews.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
@@ -48,7 +58,8 @@ public class NewsActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                Toast.makeText(NewsActivity.this, "Searching : " + s, Toast.LENGTH_LONG).show();
+                newsAdapter.clear();
+                newsAdapter.addNews(newsDatabaseAdapter.findNewsByTitle(s));
                 return false;
             }
 
@@ -63,11 +74,22 @@ public class NewsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_save) {
-            Toast.makeText(this, getString(R.string.save), Toast.LENGTH_SHORT).show();
+            if (news == null) {
+                news = new News();
+            }
+            news.setStatus(1);
+            news.setContent(content.getText().toString());
+            news.setTitle(title.getText().toString());
+            news.setCreateDate(new Date().getTime());
+            newsDatabaseAdapter.save(news);
+            newsAdapter.clear();
+            newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
+            title.setText("");
+            content.setText("");
+            news = new News();
         } else if (item.getItemId() == R.id.action_refresh) {
-            Toast.makeText(this, getString(R.string.refresh), Toast.LENGTH_SHORT).show();
-        } else if (item.getItemId() == R.id.action_search) {
-            Toast.makeText(this, getString(R.string.search), Toast.LENGTH_SHORT).show();
+            newsAdapter.clear();
+            newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
         }
         return true;
     }
@@ -75,33 +97,37 @@ public class NewsActivity extends AppCompatActivity {
     private void dialogActions(final int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.action));
-        builder.setItems(new String[]{getString(R.string.edit), getString(R.string.delete)}, new
-                DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int location) {
-                        News news = (News) newsAdapter.getItem(position);
-                        if (location == 0) {
-                            Toast.makeText(NewsActivity.this, "Edit News : " + news.getTitle(),
-                                    Toast.LENGTH_LONG).show();
-                        } else if (location == 1) {
-                            confirmDelete(position);
-                        }
+        builder.setItems(new String[]{getString(R.string.edit), getString(R.string.delete)}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int location) {
+                news = newsDatabaseAdapter.findNewsById(((News) newsAdapter.getItem(position)).getId());
+                if (location == 0) {
+                    if (news != null) {
+                        title.setText(news.getTitle());
+                        content.setText(news.getContent());
+                        title.requestFocus();
                     }
-                });
+                } else if (location == 1) {
+                    if (news != null) {
+                        confirmDelete(news);
+                    }
+                }
+            }
+        });
         builder.create().show();
     }
 
-    private void confirmDelete(int position) {
+    private void confirmDelete(final News news) {
 
-        final News news = (News) newsAdapter.getItem(position);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(getString(R.string.delete));
         builder.setMessage(getString(R.string.confirm_delete) + " '" + news.getTitle() + "' ?");
         builder.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                Toast.makeText(NewsActivity.this, "Delete News : " + news.getTitle(),
-                        Toast.LENGTH_LONG).show();
+                newsDatabaseAdapter.delete(news);
+                newsAdapter.clear();
+                newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
             }
         });
         builder.setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
