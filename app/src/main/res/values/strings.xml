@@ -8,6 +8,7 @@
     <string name="search">Search</string>
     <string name="refresh">Refresh</string>
     <string name="news_list">News List</string>
+    <string name="loading">Loading</string>
 
     <string name="action">Actions</string>
     <string name="edit">Edit</string>

@@ -1,5 +1,6 @@
 package com.lolaadellia.meruvian;
 
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,24 +14,40 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.lolaadellia.meruvian.adapter.NewsAdapter;
 import com.lolaadellia.meruvian.content.database.adapter.NewsDatabaseAdapter;
 import com.lolaadellia.meruvian.entity.News;
+import com.lolaadellia.meruvian.rest.RestVariables;
+import com.lolaadellia.meruvian.service.TaskService;
+import com.lolaadellia.meruvian.task.NewsDeleteTask;
+import com.lolaadellia.meruvian.task.NewsGetTask;
+import com.lolaadellia.meruvian.task.NewsPostTask;
+import com.lolaadellia.meruvian.task.NewsPutTask;
 
 import java.util.Date;
+import java.util.List;
 
-public class NewsActivity extends AppCompatActivity {
+
+public class NewsActivity extends AppCompatActivity implements TaskService {
     EditText title, content;
     private ListView listNews;
     private NewsAdapter newsAdapter;
     private NewsDatabaseAdapter newsDatabaseAdapter;
     private News news;
 
+    private ProgressDialog progressDialog;
+    private NewsGetTask newsGetTask;
+    private NewsPostTask newsPostTask;
+    private NewsPutTask newsPutTask;
+    private NewsDeleteTask newsDeleteTask;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news);
+
 
         listNews = (ListView) findViewById(R.id.list_news);
         newsDatabaseAdapter = new NewsDatabaseAdapter(this);
@@ -47,6 +64,9 @@ public class NewsActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        newsGetTask = new NewsGetTask(NewsActivity.this, NewsActivity.this);
+        newsGetTask.execute("");
     }
 
     @Override
@@ -58,8 +78,8 @@ public class NewsActivity extends AppCompatActivity {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String s) {
-                newsAdapter.clear();
-                newsAdapter.addNews(newsDatabaseAdapter.findNewsByTitle(s));
+                newsGetTask = new NewsGetTask(NewsActivity.this, NewsActivity.this);
+                newsGetTask.execute(s);
                 return false;
             }
 
@@ -81,15 +101,17 @@ public class NewsActivity extends AppCompatActivity {
             news.setContent(content.getText().toString());
             news.setTitle(title.getText().toString());
             news.setCreateDate(new Date().getTime());
-            newsDatabaseAdapter.save(news);
-            newsAdapter.clear();
-            newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
-            title.setText("");
-            content.setText("");
+            if (news.getId() == -1) {
+                newsPostTask = new NewsPostTask(this, this);
+                newsPostTask.execute(news);
+            } else {
+                newsPutTask = new NewsPutTask(this, this);
+                newsPutTask.execute(news);
+            }
             news = new News();
         } else if (item.getItemId() == R.id.action_refresh) {
-            newsAdapter.clear();
-            newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
+            newsGetTask = new NewsGetTask(this, this);
+            newsGetTask.execute("");
         }
         return true;
     }
@@ -100,15 +122,13 @@ public class NewsActivity extends AppCompatActivity {
         builder.setItems(new String[]{getString(R.string.edit), getString(R.string.delete)}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int location) {
-                news = newsDatabaseAdapter.findNewsById(((News) newsAdapter.getItem(position)).getId());
-                if (location == 0) {
-                    if (news != null) {
+                news = (News) newsAdapter.getItem(position);
+                if (news != null) {
+                    if (location == 0) {
                         title.setText(news.getTitle());
                         content.setText(news.getContent());
                         title.requestFocus();
-                    }
-                } else if (location == 1) {
-                    if (news != null) {
+                    } else if (location == 1) {
                         confirmDelete(news);
                     }
                 }
@@ -116,6 +136,7 @@ public class NewsActivity extends AppCompatActivity {
         });
         builder.create().show();
     }
+
 
     private void confirmDelete(final News news) {
 
@@ -125,9 +146,9 @@ public class NewsActivity extends AppCompatActivity {
         builder.setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                newsDatabaseAdapter.delete(news);
-                newsAdapter.clear();
-                newsAdapter.addNews(newsDatabaseAdapter.findNewsAll());
+                newsDeleteTask = new NewsDeleteTask(NewsActivity.this, NewsActivity.this);
+                newsDeleteTask.execute(news.getId() + "");
+                News news = new News();
             }
         });
         builder.setNegativeButton(getString(R.string.no), new DialogInterface.OnClickListener() {
@@ -136,6 +157,66 @@ public class NewsActivity extends AppCompatActivity {
                 dialogInterface.dismiss();
             }
         });
-        builder.create().show();
+    }
+
+    @Override
+    public void onExecute(int code) {
+        if (progressDialog != null) {
+            if (!progressDialog.isShowing()) {
+                progressDialog.setMessage(getString(R.string.loading));
+                progressDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        if (newsGetTask != null) {
+                            newsGetTask.cancel(true);
+                        }
+                    }
+                });
+                progressDialog.show();
+            }
+        } else {
+            progressDialog = new ProgressDialog(this);
+        }
+    }
+
+    @Override
+    public void onSuccess(int code, Object result) {
+        if (result != null) {
+            if (code == RestVariables.NEWS_GET_TASK) {
+                List<News> newses = (List<News>) result;
+                newsAdapter.clear();
+                newsAdapter.addNews(newses);
+            } else if (code == RestVariables.NEWS_POST_TASK) {
+                title.setText("");
+                content.setText("");
+                news = new News();
+                News news = (News) result;
+                newsAdapter.addNews(news);
+            } else if (code == RestVariables.NEWS_PUT_TASK) {
+                title.setText("");
+                content.setText("");
+                news = new News();
+                newsGetTask = new NewsGetTask(this, this);
+                newsGetTask.execute("");
+            } else if (code == RestVariables.NEWS_DELETE_TASK) {
+                newsGetTask = new NewsGetTask(this, this);
+                newsGetTask.execute("");
+            }
+        }
+        progressDialog.dismiss();
+    }
+
+
+    @Override
+    public void onCancel(int code, String message) {
+        progressDialog.dismiss();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onError(int code, String message) {
+        progressDialog.dismiss();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 }
+

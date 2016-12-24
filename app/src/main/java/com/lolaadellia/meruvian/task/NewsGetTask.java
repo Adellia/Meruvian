@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 /**
  * Created by Hanum on 24/12/2016.
  */
@@ -65,6 +66,8 @@ public class NewsGetTask extends AsyncTask<String, Void, JSONArray> {
 
     @Override
     protected void onPostExecute(JSONArray jsonArray) {
+
+        System.out.println(jsonArray);
         try {
             if (jsonArray.length() > 0) {
                 List<News> newses = new ArrayList<News>();

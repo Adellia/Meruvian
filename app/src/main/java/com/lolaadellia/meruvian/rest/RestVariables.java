@@ -6,7 +6,7 @@ package com.lolaadellia.meruvian.rest;
 
 public class RestVariables {
 
-    public static final String SERVER_URL = "http://10.0.2.2:8080/api/news";
+    public static final String SERVER_URL = "http://yama-lite.meruvian.org/api/news";
     public static final int NEWS_GET_TASK = 1;
     public static final int NEWS_POST_TASK = 2;
     public static final int NEWS_DELETE_TASK = 3;
