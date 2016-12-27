@@ -157,6 +157,7 @@ public class NewsActivity extends AppCompatActivity implements TaskService {
                 dialogInterface.dismiss();
             }
         });
+        builder.create().show();
     }
 
     @Override
