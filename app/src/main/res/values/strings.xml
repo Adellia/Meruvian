@@ -3,11 +3,14 @@
 
     <string name="title">Title</string>
     <string name="content">Content</string>
+    <string name="category">Category</string>
+    <string name="subcategory">Sub Category</string>
 
     <string name="save">Save</string>
     <string name="search">Search</string>
     <string name="refresh">Refresh</string>
     <string name="news_list">News List</string>
+    <string name="category_list">Category List</string>
     <string name="loading">Loading</string>
 
     <string name="action">Actions</string>
@@ -21,4 +24,9 @@
     <string name="failed_delete_news">Failed Delete News</string>
     <string name="empty_news">Empty News</string>
     <string name="failed_recieve_news">Failed Recieve News</string>
+
+    <string name="failed_post_category">Failed Post Category</string>
+    <string name="failed_delete_category">Failed Delete Category</string>
+    <string name="empty_category">Empty Category</string>
+    <string name="failed_recieve_category">Failed Recieve Category</string>
 </resources>

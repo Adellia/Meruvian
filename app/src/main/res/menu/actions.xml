@@ -2,6 +2,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
     <item
         android:id="@+id/action_search"
         android:icon="@android:drawable/ic_menu_search"
@@ -18,4 +19,9 @@
         android:icon="@android:drawable/ic_menu_save"
         android:title="@string/save"
         app:showAsAction="withText|always" />
+
+    <item
+        android:id="@+id/action_category"
+        android:icon="@drawable/ic_account_balance_black_24dp"
+        android:title="@string/category" />
 </menu>

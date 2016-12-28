@@ -21,6 +21,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".CategoryActivity"></activity>
+
         <provider
             android:name=".content.database.NewsContentProvider"
             android:authorities="com.lolaadellia.meruvian.content.database.newscontentprovider"

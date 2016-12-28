@@ -1,12 +1,11 @@
 package com.lolaadellia.meruvian.task;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 
 import com.lolaadellia.meruvian.R;
-import com.lolaadellia.meruvian.entity.News;
-import com.lolaadellia.meruvian.rest.RestVariables;
+import com.lolaadellia.meruvian.entity.Category;
+import com.lolaadellia.meruvian.rest.CategoryVariables;
 import com.lolaadellia.meruvian.service.ConnectionUtil;
 import com.lolaadellia.meruvian.service.TaskService;
 
@@ -21,32 +20,32 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
- * Created by Muhammad Pandu Widod on 24/12/2016.
+ * Created by Hanum on 27/12/2016.
  */
 
-@SuppressLint("NewApi")
-public class NewsGetTask extends AsyncTask<String, Void, JSONArray> {
+public class CategoryGetTask extends AsyncTask<String, Void, JSONArray> {
+
     public Context context;
     public TaskService service;
 
-    public NewsGetTask(Context context, TaskService service) {
+    public CategoryGetTask(Context context, TaskService service) {
         this.service = service;
         this.context = context;
     }
 
     @Override
     protected void onPreExecute() {
-        service.onExecute(RestVariables.NEWS_GET_TASK);
+        service.onExecute(CategoryVariables.CATEGORY_GET_TASK);
     }
 
     @Override
     protected JSONArray doInBackground(String... params) {
         JSONArray json = null;
-
         try {
             HttpClient httpClient = new DefaultHttpClient(ConnectionUtil.getHttpParams(15000, 15000));
-            HttpGet httpGet = new HttpGet(RestVariables.SERVER_URL + "?title=" + params[0]);
+            HttpGet httpGet = new HttpGet(CategoryVariables.SERVER_URL + "?title=" + params[0]);
             httpGet.setHeader("Content-Type", "application/json");
             HttpResponse response = httpClient.execute(httpGet);
             json = new JSONArray(ConnectionUtil.convertEntityToString(response.getEntity()));
@@ -67,28 +66,25 @@ public class NewsGetTask extends AsyncTask<String, Void, JSONArray> {
     protected void onPostExecute(JSONArray jsonArray) {
         try {
             if (jsonArray.length() > 0) {
-                List<News> newses = new ArrayList<News>();
+                List<Category> categories = new ArrayList<Category>();
 
                 for (int index = 0; index < jsonArray.length(); index++) {
                     JSONObject json = jsonArray.getJSONObject(index);
 
-                    News news = new News();
-                    news.setId(json.getInt("id"));
-                    news.setTitle(json.getString("title"));
-                    news.setContent(json.getString("content"));
-                    news.setCreateDate(json.getLong("createDate"));
+                    Category category = new Category();
+                    category.setId(json.getInt("id"));
+                    category.setCategory(json.getString("name"));
+                    category.setSubcategory(json.getString("subCategory"));
 
-                    newses.add(news);
+                    categories.add(category);
                 }
-
-                service.onSuccess(RestVariables.NEWS_GET_TASK, newses);
+                service.onSuccess(CategoryVariables.CATEGORY_GET_TASK, categories);
             } else {
-                service.onError(RestVariables.NEWS_GET_TASK, context.getString(R.string.empty_news));
+                service.onError(CategoryVariables.CATEGORY_GET_TASK, context.getString(R.string.empty_category));
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            service.onError(RestVariables.NEWS_GET_TASK, context.getString(R.string.failed_recieve_news));
+            service.onError(CategoryVariables.CATEGORY_GET_TASK, context.getString(R.string.failed_recieve_category));
         }
     }
-
 }

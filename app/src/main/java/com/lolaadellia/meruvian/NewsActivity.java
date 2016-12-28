@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -112,6 +113,8 @@ public class NewsActivity extends AppCompatActivity implements TaskService {
         } else if (item.getItemId() == R.id.action_refresh) {
             newsGetTask = new NewsGetTask(this, this);
             newsGetTask.execute("");
+        } else if (item.getItemId() == R.id.action_category) {
+            startActivity(new Intent(NewsActivity.this, CategoryActivity.class));
         }
         return true;
     }

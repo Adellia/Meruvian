@@ -4,8 +4,8 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.lolaadellia.meruvian.R;
-import com.lolaadellia.meruvian.entity.News;
-import com.lolaadellia.meruvian.rest.RestVariables;
+import com.lolaadellia.meruvian.entity.Category;
+import com.lolaadellia.meruvian.rest.CategoryVariables;
 import com.lolaadellia.meruvian.service.ConnectionUtil;
 import com.lolaadellia.meruvian.service.TaskService;
 
@@ -21,34 +21,33 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 /**
- * Created by Hanum on 24/12/2016.
+ * Created by Hanum on 27/12/2016.
  */
 
-public class NewsPutTask extends AsyncTask<News, Void, JSONObject> {
+public class CategoryPutTask extends AsyncTask<Category, Void, JSONObject> {
 
     private Context context;
     private TaskService service;
 
-    public NewsPutTask(Context context, TaskService service) {
+    public CategoryPutTask(Context context, TaskService service) {
         this.context = context;
         this.service = service;
     }
 
     @Override
     protected void onPreExecute() {
-        service.onExecute(RestVariables.NEWS_PUT_TASK);
+        service.onExecute(CategoryVariables.CATEGORY_PUT_TASK);
     }
 
     @Override
-    protected JSONObject doInBackground(News... params) {
+    protected JSONObject doInBackground(Category... params) {
         JSONObject json = new JSONObject();
         try {
             json.put("id", params[0].getId());
-            json.put("title", params[0].getTitle());
-            json.put("content", params[0].getContent());
-            json.put("createDate", 0);
+            json.put("category", params[0].getCategory());
+            json.put("subCategory", params[0].getSubcategory());
             HttpClient httpClient = new DefaultHttpClient(ConnectionUtil.getHttpParams(15000, 15000));
-            HttpPut httpPut = new HttpPut(RestVariables.SERVER_URL + "/" + params[0].getId());
+            HttpPut httpPut = new HttpPut(CategoryVariables.SERVER_URL + "/" + params[0].getId());
             httpPut.addHeader(new BasicHeader("Content-Type", "application/json"));
             httpPut.setEntity(new StringEntity(json.toString()));
             HttpResponse response = httpClient.execute(httpPut);
@@ -70,19 +69,17 @@ public class NewsPutTask extends AsyncTask<News, Void, JSONObject> {
     protected void onPostExecute(JSONObject jsonObject) {
         try {
             if (jsonObject != null) {
-                News news = new News();
-                news.setId(jsonObject.getInt("id"));
-                news.setContent(jsonObject.getString("content"));
-                news.setTitle(jsonObject.getString("title"));
-                news.setCreateDate(jsonObject.getLong("createDate"));
-                service.onSuccess(RestVariables.NEWS_PUT_TASK, news);
+                Category category = new Category();
+                category.setId(jsonObject.getInt("id"));
+                category.setCategory(jsonObject.getString("name"));
+                category.setSubcategory(jsonObject.getString("subCategory"));
+                service.onSuccess(CategoryVariables.CATEGORY_PUT_TASK, category);
             } else {
-                service.onError(RestVariables.NEWS_PUT_TASK,
-                        context.getString(R.string.failed_post_news));
+                service.onError(CategoryVariables.CATEGORY_PUT_TASK, context.getString(R.string.failed_post_category));
             }
         } catch (JSONException e) {
             e.printStackTrace();
-            service.onError(RestVariables.NEWS_PUT_TASK, context.getString(R.string.failed_post_news));
+            service.onError(CategoryVariables.CATEGORY_PUT_TASK, context.getString(R.string.failed_post_category));
         }
     }
 }
